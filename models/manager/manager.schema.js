@@ -20,4 +20,4 @@ const managerSchema = mongoose.Schema({
     }],
     email: { type: String, lowercase: true, validate: [checkEmail, 'Email invalid'] }
 }, { collection: 'manager' })
-module.exports = mangerSchema
+module.exports = managerSchema
