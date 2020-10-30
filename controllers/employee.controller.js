@@ -34,16 +34,53 @@ module.exports = function (app) {
             })
         }})
 
-    app.get('/api/employee/:id', (req, res) =>
-        employeeService.findEmployeeById(req.params['id'])
-            .then(employee => res.json(employee)))
+    // get information for employee specified by id
+    app.get('/api/employee/:id', (req, res) => {
+        if (req.session['profile']) {
+            // admin
+            if (req.session['userType'] === "admin") {
+                employeeService.findEmployeeById(req.params['id'])
+                    .then(employee => res.json(employee))
+            }
+            // hr (only non hr employees)
+            if (req.session['userType'] === "employee" && req.session['profile'].hr) {
+                if (isEmployeeHR(req.params['id'])) {
+                    employeeService.findEmployeeById(req.params['id'])
+                        .then(employee => res.json(employee))
+                }
+            }
+            // manager (if their employee)
+            if (req.session['userType'] === "manager") {
+                if (isEmployeeIdManagedByMid(req.params['id'], req.session['profile'].id))
+                    employeeService.findEmployeeById(req.params['id'])
+                        .then(employee => res.json(employee))
+            }
+            // own id
+            if (req.session['profile'].id === req.params['id']) {
+                employeeService.findEmployeeById(req.params['id'])
+                        .then(employee => res.json(employee))
+            }
+            else {
+                res.status(403).send({
+                    message: "You do not have permission to this employee's information"
+                })
+            }
+            
+        }
+        else {
+            res.status(401).send({
+                message: 'Please log in'
+            })
+        }
+    })
+
     // create employee (register below does similair)
     // app.post('/api/employee', (req, res) =>
     //     employeeService.createEmployee(req.body)
     //         .then(newEmployee => res.send(newEmployee)))
 
 
-    // update employee
+    // update employee specified by id
     app.put('/api/employee/:id', (req, res) => {
         if (req.session['profile']) {
             // admin

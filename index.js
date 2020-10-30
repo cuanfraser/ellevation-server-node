@@ -2,6 +2,7 @@ const express = require('express');
 const app = express()
 const mongoose = require('mongoose')
 const session = require('express-session')
+const bodyParser = require('body-parser')
 
 mongoose.connect('mongodb://localhost:27017/ellevation',
     { useNewUrlParser: true, useUnifiedTopology: true })
@@ -23,10 +24,10 @@ app.use(session({
     secret: 'temporary secret string'
 }));
 
-var bodyParser = require('body-parser')
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 require('./controllers/employee.controller')(app)
+require('./controllers/manager.controller')(app)
 
 app.listen(3000)
