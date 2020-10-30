@@ -9,6 +9,7 @@ const findEmployeesNotHR = () => employeeModel.find({ hr: false })
 
 const createEmployee = (employee) => employeeModel.create(employee)
 const updateEmployee = (id, employee) => employeeModel.findOneAndUpdate({ _id: id }, employee)
+const deleteEmployee = (id) => employeeModel.deleteOne({_id: id})
 
 const findEmployeeByCredentials = (username, password) =>
     employeeModel.findOne(
@@ -17,4 +18,5 @@ const findEmployeeByCredentials = (username, password) =>
             password: password
         })
 
-module.exports = { findAllEmployees, findEmployeeById, findEmployeesForManager, createEmployee, updateEmployee, findEmployeeByCredentials, findEmployeesNotHR }
+module.exports = { findAllEmployees, findEmployeeById, findEmployeesForManager, createEmployee, 
+    updateEmployee, findEmployeeByCredentials, findEmployeesNotHR, deleteEmployee }

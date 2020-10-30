@@ -1,30 +1,38 @@
 const { isEmployeeHR, isEmployeeIdManagedByMid } = require('../services/employee.service')
 const employeeService = require('../services/employee.service')
-const managerService = require('../services/manager.service')
 
 module.exports = function (app) {
     // get all employees possible
-    app.get('/api/employee', (req, res) => {
+    app.get('/api/employee', async (req, res) => {
+
         if (req.session['profile']) {
+
+            const userType = req.session['userType']
+            const profile = req.session['profile']
+    
             // admin
-            if (req.session['userType'] === "admin") {
-                employeeService.findAllEmployees()
+            if (userType === "admin") {
+                await employeeService.findAllEmployees()
                     .then(allEmployees => res.json(allEmployees))
+                return
             }
             // hr (only non hr employees)
-            if (req.session['userType'] === "employee" && req.session['profile'].hr) {
-                employeeService.findEmployeesNotHR()
+            if (userType === "employee" && profile.hr) {
+                await employeeService.findEmployeesNotHR()
                     .then(allEmployees => res.json(allEmployees))
+                return
             }
             // manager (find their employees)
-            if (req.session['userType'] === "manager") {
-                managerService.findEmployeesForManager(req.session['profile'].id)
+            if (userType === "manager") {
+                await employeeService.findEmployeesForManager(profile._id)
                     .then(allEmployees => res.json(allEmployees))
+                return
             }
             else {
                 res.status(403).send({
                     message: "You do not have permission to other employees' information"
                 })
+                return
             }
             
         }
@@ -32,86 +40,49 @@ module.exports = function (app) {
             res.status(401).send({
                 message: 'Please log in'
             })
-        }})
-
-    // get information for employee specified by id
-    app.get('/api/employee/:id', (req, res) => {
-        if (req.session['profile']) {
-            // admin
-            if (req.session['userType'] === "admin") {
-                employeeService.findEmployeeById(req.params['id'])
-                    .then(employee => res.json(employee))
-            }
-            // hr (only non hr employees)
-            if (req.session['userType'] === "employee" && req.session['profile'].hr) {
-                if (isEmployeeHR(req.params['id'])) {
-                    employeeService.findEmployeeById(req.params['id'])
-                        .then(employee => res.json(employee))
-                }
-            }
-            // manager (if their employee)
-            if (req.session['userType'] === "manager") {
-                if (isEmployeeIdManagedByMid(req.params['id'], req.session['profile'].id))
-                    employeeService.findEmployeeById(req.params['id'])
-                        .then(employee => res.json(employee))
-            }
-            // own id
-            if (req.session['profile'].id === req.params['id']) {
-                employeeService.findEmployeeById(req.params['id'])
-                        .then(employee => res.json(employee))
-            }
-            else {
-                res.status(403).send({
-                    message: "You do not have permission to this employee's information"
-                })
-            }
-            
-        }
-        else {
-            res.status(401).send({
-                message: 'Please log in'
-            })
+            return
         }
     })
 
-    // create employee (register below does similair)
-    // app.post('/api/employee', (req, res) =>
-    //     employeeService.createEmployee(req.body)
-    //         .then(newEmployee => res.send(newEmployee)))
-
-
-    // update employee specified by id
-    app.put('/api/employee/:id', (req, res) => {
+    // get information for employee specified by id
+    app.get('/api/employee/:id', async (req, res) => {
         if (req.session['profile']) {
+
+            const userType = req.session['userType']
+            const profile = req.session['profile']
+
             // admin
-            if (req.session['userType'] === "admin") {
-                employeeService.updateEmployee(req.params['id'], req.body)
+            if (userType === "admin") {
+                await employeeService.findEmployeeById(req.params['id'])
                     .then(employee => res.json(employee))
+                return
             }
-            // manager
-            if (req.session['userType'] === "manager") {
-                if (isEmployeeIdManagedByMid(req.params['id'], req.session['profile'].id)) {
-                    employeeService.updateEmployee(req.params['id'], req.body)
+            // hr (only non hr employees)
+            if (userType === "employee" && profile.hr) {
+                if (isEmployeeHR(req.params['id'])) {
+                    await employeeService.findEmployeeById(req.params['id'])
                         .then(employee => res.json(employee))
+                    return
                 }
             }
-            // hr
-            if (req.session['userType'] === "employee" && req.session['profile'].hr) {
-                if (!isEmployeeHR(req.params['id']))
-                    employeeService.updateEmployee(req.params['id'], req.body)
+            // manager (if their employee)
+            if (userType === "manager") {
+                if (isEmployeeIdManagedByMid(req.params['id'], profile._id))
+                    await employeeService.findEmployeeById(req.params['id'])
                         .then(employee => res.json(employee))
+                    return
             }
-            // update own profile
-            if (req.session['userType'] === "employee" && 
-                (req.session['profile'].id === req.params['id'])) {
-
-                employeeService.updateEmployee(req.params['id'], req.body)
-                    .then(employee => res.json(employee))
+            // own id
+            if (profile._id === req.params['id']) {
+                await employeeService.findEmployeeById(req.params['id'])
+                        .then(employee => res.json(employee))
+                return
             }
             else {
                 res.status(403).send({
                     message: "You do not have permission to this employee's information"
                 })
+                return
             }
             
         }
@@ -119,6 +90,60 @@ module.exports = function (app) {
             res.status(401).send({
                 message: 'Please log in'
             })
+            return
+        }
+    })
+
+
+    // update employee specified by id
+    app.put('/api/employee/:id', async (req, res) => {
+        if (req.session['profile']) {
+
+            const userType = req.session['userType']
+            const profile = req.session['profile']
+
+            // admin
+            if (userType === "admin") {
+                await employeeService.updateEmployee(req.params['id'], req.body)
+                    .then(employee => res.json(employee))
+                return
+            }
+            // manager
+            if (userType === "manager") {
+                if (isEmployeeIdManagedByMid(req.params['id'], profile._id)) {
+                    await employeeService.updateEmployee(req.params['id'], req.body)
+                        .then(employee => res.json(employee))
+                    return
+                }
+            }
+            // hr
+            if (userType === "employee" && profile.hr) {
+                if (!isEmployeeHR(req.params['id']))
+                    await employeeService.updateEmployee(req.params['id'], req.body)
+                        .then(employee => res.json(employee))
+                    return
+            }
+            // update own profile
+            if (userType === "employee" && 
+                (profile._id === req.params['id'])) {
+
+                await employeeService.updateEmployee(req.params['id'], req.body)
+                    .then(employee => res.json(employee))
+                return
+            }
+            else {
+                res.status(403).send({
+                    message: "You do not have permission to this employee's information"
+                })
+                return
+            }
+            
+        }
+        else {
+            res.status(401).send({
+                message: 'Please log in'
+            })
+            return
         }
     })
         

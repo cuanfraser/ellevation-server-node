@@ -8,4 +8,6 @@ const updateManager = (id, manager) => managerDaos.updateManager(id, manager)
 
 const findEmployeesForManager = (mid) => employeeDaos.findEmployeesForManager(mid)
 
-module.exports = { findAllManagers, findManagerById, createManager, updateManager, findEmployeesForManager }
+const findManagerByCredentials = (username, password) => managerDaos.findManagerByCredentials(username, password)
+
+module.exports = { findAllManagers, findManagerById, createManager, updateManager, findEmployeesForManager, findManagerByCredentials }

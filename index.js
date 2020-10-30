@@ -29,5 +29,6 @@ app.use(bodyParser.json())
 
 require('./controllers/employee.controller')(app)
 require('./controllers/manager.controller')(app)
+require('./controllers/admin.controller')(app)
 
 app.listen(3000)
