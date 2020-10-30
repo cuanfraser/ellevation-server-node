@@ -9,8 +9,10 @@ const updateEmployee = (id, employee) => employeeDaos.updateEmployee(id, employe
 const deleteEmployee = (id) => employeeDaos.deleteEmployee(id)
 const findEmployeeByCredentials = (username, password) => employeeDaos.findEmployeeByCredentials(username, password)
 
-const isEmployeeIdHr = (id) => findEmployeeById(id).hr
-const isEmployeeIdManagedByMid = (eid, mid) => findEmployeesForManager(mid).some(employee => employee.id === eid)
+const isEmployeeIdHr = (id) => findEmployeeById(id)
+    .then(employee => employee.hr)
+const isEmployeeIdManagedByMid = (eid, mid) => findEmployeesForManager(mid)
+    .then(employees => employees.some(employee => employee.id === eid))
 
 // for theoretical moving code away from controller to service files
 const findPermittedEmployees = (userType, profile) => {

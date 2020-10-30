@@ -14,7 +14,7 @@ const employeeSchema = mongoose.Schema({
     salaryHistory: [Number],
     vac: Number,
     bonus: Number,
-    hr: Boolean,
+    hr: { type: Boolean, default: false },
     email: { type: String, lowercase: true, validate: [checkEmail, 'Email invalid'] }
 }, { collection: 'employee' })
 module.exports = employeeSchema

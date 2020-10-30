@@ -1,4 +1,4 @@
-const { isEmployeeHR, isEmployeeIdManagedByMid } = require('../services/employee.service')
+const { isEmployeeIdHr, isEmployeeIdManagedByMid } = require('../services/employee.service')
 const employeeService = require('../services/employee.service')
 
 module.exports = function (app) {
@@ -45,6 +45,7 @@ module.exports = function (app) {
     })
 
     // get information for employee specified by id
+    // used .then coding style for if statements instead of await
     app.get('/api/employee/:id', async (req, res) => {
         if (req.session['profile']) {
 
@@ -53,28 +54,40 @@ module.exports = function (app) {
 
             // admin
             if (userType === "admin") {
-                await employeeService.findEmployeeById(req.params['id'])
+                employeeService.findEmployeeById(req.params['id'])
                     .then(employee => res.json(employee))
                 return
             }
             // hr (only non hr employees)
             if (userType === "employee" && profile.hr) {
-                if (isEmployeeHR(req.params['id'])) {
-                    await employeeService.findEmployeeById(req.params['id'])
-                        .then(employee => res.json(employee))
-                    return
-                }
+                employeeService.isEmployeeIdHr(req.params['id'])
+                    .then(bool => {
+                        if (!bool) {
+                            employeeService.findEmployeeById(req.params['id'])
+                                .then(employee => res.json(employee))
+                        }
+                    })
+                return
             }
             // manager (if their employee)
             if (userType === "manager") {
-                if (isEmployeeIdManagedByMid(req.params['id'], profile._id))
-                    await employeeService.findEmployeeById(req.params['id'])
-                        .then(employee => res.json(employee))
-                    return
+                employeeService.isEmployeeIdManagedByMid(req.params['id'], profile._id)
+                    .then(bool => {
+                        if (bool) {
+                            employeeService.findEmployeeById(req.params['id'])
+                                .then(employee => res.json(employee))
+                        }
+                    })
+                return
+                // await version
+                // if (await isEmployeeIdManagedByMid(req.params['id'], profile._id))
+                //     await employeeService.findEmployeeById(req.params['id'])
+                //         .then(employee => res.json(employee))
+                //     return
             }
             // own id
             if (profile._id === req.params['id']) {
-                await employeeService.findEmployeeById(req.params['id'])
+                employeeService.findEmployeeById(req.params['id'])
                         .then(employee => res.json(employee))
                 return
             }
@@ -110,7 +123,7 @@ module.exports = function (app) {
             }
             // manager
             if (userType === "manager") {
-                if (isEmployeeIdManagedByMid(req.params['id'], profile._id)) {
+                if (await isEmployeeIdManagedByMid(req.params['id'], profile._id)) {
                     await employeeService.updateEmployee(req.params['id'], req.body)
                         .then(employee => res.json(employee))
                     return
@@ -118,7 +131,7 @@ module.exports = function (app) {
             }
             // hr
             if (userType === "employee" && profile.hr) {
-                if (!isEmployeeHR(req.params['id']))
+                if (! (await isEmployeeIdHr(req.params['id'])))
                     await employeeService.updateEmployee(req.params['id'], req.body)
                         .then(employee => res.json(employee))
                     return

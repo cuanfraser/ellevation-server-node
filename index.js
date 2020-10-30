@@ -4,6 +4,8 @@ const mongoose = require('mongoose')
 const session = require('express-session')
 const bodyParser = require('body-parser')
 
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
 mongoose.connect('mongodb://localhost:27017/ellevation',
     { useNewUrlParser: true, useUnifiedTopology: true })
 
