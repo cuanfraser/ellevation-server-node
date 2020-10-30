@@ -5,6 +5,7 @@ const findAllEmployees = () => employeeModel.find()
 const findEmployeeById = (eid) => employeeModel.findById(eid)
 const findEmployeesForManager = (mid) => managerModel.findById(mid)
     .populate('employees').then(manager => manager.employees)
+const findEmployeesNotHR = () => employeeModel.find({ hr: false })
 
 const createEmployee = (employee) => employeeModel.create(employee)
 const updateEmployee = (id, employee) => employeeModel.findOneAndUpdate({ _id: id }, employee)
@@ -16,4 +17,4 @@ const findEmployeeByCredentials = (username, password) =>
             password: password
         })
 
-module.exports = { findAllEmployees, findEmployeeById, findEmployeesForManager, createEmployee, updateEmployee, findEmployeeByCredentials }
+module.exports = { findAllEmployees, findEmployeeById, findEmployeesForManager, createEmployee, updateEmployee, findEmployeeByCredentials, findEmployeesNotHR }
